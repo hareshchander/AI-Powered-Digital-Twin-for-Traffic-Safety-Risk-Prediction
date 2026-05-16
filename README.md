@@ -73,6 +73,12 @@ streamlit run app.py
 ```
 *Note: Upon the first run, the app will automatically generate the synthetic dataset (`synthetic_traffic_data.csv`) and train the required models. This may take a few moments.*
 
+### 🚀 Streamlit Cloud Deployment Tips
+If your deployment on Streamlit Cloud is taking a long time:
+1. **Dependency Optimization:** We have removed heavy unused libraries like `TensorFlow` to speed up the installation process from ~10 minutes to under 2 minutes.
+2. **First Run Initialization:** The very first time the app launches on the cloud, it must train the ML models (since they are ignored by Git). You will see a "Initializing system..." spinner. Please allow up to 60 seconds for this one-time setup.
+3. **Re-deploying:** If it remains stuck, try "Reboot App" from the Streamlit Cloud dashboard after pushing the updated `requirements.txt`.
+
 ## Future Research Extensions
 * **V2X Integration:** Simulate Vehicle-to-Everything communication protocols feeding live micro-data into the twin.
 * **Deep Learning for Trajectory Prediction:** Implement LSTM or Spatio-Temporal Graph Convolutional Networks (STGCN) for predicting exact vehicle paths.
