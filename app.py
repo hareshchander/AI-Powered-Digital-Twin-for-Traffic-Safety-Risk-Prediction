@@ -17,27 +17,39 @@ st.set_page_config(page_title="Traffic Digital Twin", layout="wide", page_icon="
 
 # --- Initialize Models ---
 MODELS_DIR = "models"
-if not os.path.exists(MODELS_DIR) or not os.path.exists("synthetic_traffic_data.csv"):
-    with st.spinner("Initializing system and training models..."):
-        generator = TrafficDataGenerator(num_records=5000)
-        df = generator.generate_data()
-        df.to_csv("synthetic_traffic_data.csv", index=False)
-        train_and_save_models()
 
 @st.cache_resource
-def load_models():
-    coll_model = joblib.load(os.path.join(MODELS_DIR, 'collision_model.pkl'))
-    cong_model = joblib.load(os.path.join(MODELS_DIR, 'congestion_model.pkl'))
-    risk_model = joblib.load(os.path.join(MODELS_DIR, 'risk_model.pkl'))
-    anomaly_model = joblib.load(os.path.join(MODELS_DIR, 'anomaly_model.pkl'))
-    return coll_model, cong_model, risk_model, anomaly_model
+def initialize_system():
+    """Ensures data and models exist before app starts."""
+    try:
+        if not os.path.exists("synthetic_traffic_data.csv") or not os.path.exists(MODELS_DIR):
+            st.info("System first-run: Generating synthetic data and training models...")
+            generator = TrafficDataGenerator(num_records=2000) # Reduced for faster first run
+            df = generator.generate_data()
+            df.to_csv("synthetic_traffic_data.csv", index=False)
+            train_and_save_models(data_path="synthetic_traffic_data.csv")
+        
+        coll_model = joblib.load(os.path.join(MODELS_DIR, 'collision_model.pkl'))
+        cong_model = joblib.load(os.path.join(MODELS_DIR, 'congestion_model.pkl'))
+        risk_model = joblib.load(os.path.join(MODELS_DIR, 'risk_model.pkl'))
+        anomaly_model = joblib.load(os.path.join(MODELS_DIR, 'anomaly_model.pkl'))
+        return coll_model, cong_model, risk_model, anomaly_model
+    except Exception as e:
+        st.error(f"Initialization Error: {e}")
+        return None, None, None, None
 
-coll_model, cong_model, risk_model, anomaly_model = load_models()
+coll_model, cong_model, risk_model, anomaly_model = initialize_system()
+
+if coll_model is None:
+    st.stop()
 
 # --- Load Historical Data ---
 @st.cache_data
 def load_historical_data():
-    return pd.read_csv("synthetic_traffic_data.csv")
+    try:
+        return pd.read_csv("synthetic_traffic_data.csv")
+    except:
+        return pd.DataFrame()
 
 hist_data = load_historical_data()
 
